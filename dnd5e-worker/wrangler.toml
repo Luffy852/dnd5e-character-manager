@@ -1,0 +1,9 @@
+name = "dnd5e-character-api"
+main = "src/index.js"
+compatibility_date = "2026-02-03"
+
+# 绑定D1数据库（替换为你的数据库名称）
+[[d1_databases]]
+binding = "DB" # 代码中通过env.DB访问
+database_name = "dnd5e-characters" # 你的D1数据库名
+database_id = "416b403f-224a-41f0-9555-70404c0898ee" # 从Cloudflare D1页面复制
