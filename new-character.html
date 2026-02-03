@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    创建新角色 - DND5E角色卡管理工具
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/v4-shims.min.css" rel="stylesheet">
+    <!-- 自定义CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF7D00',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-inter bg-gray-50 text-dark">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-md fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-dice-d20 text-primary text-2xl mr-2"></i>
+                    <span class="text-xl font-bold text-primary">DND5E角色管理器</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="dashboard.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        仪表盘
+                    </a>
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-2 text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            <i class="fas fa-user-circle text-xl"></i>
+                            <span id="usernameDisplay">用户名</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <!-- 用户菜单 -->
+                        <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                个人资料
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                设置
+                            </a>
+                            <hr class="my-1">
+                            <a href="#" id="logoutButton" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                退出登录
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <section class="pt-24 pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-dark mb-2">创建新角色</h1>
+                <p class="text-gray-600">创建你的DND5E角色卡</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <form id="newCharacterForm" class="p-6 space-y-6">
+                    <!-- 基本信息 -->
+                    <div>
+                        <h2 class="text-xl font-semibold mb-4">基本信息</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">角色名称</label>
+                                <input type="text" id="name" name="name" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                    placeholder="输入角色名称">
+                            </div>
+                            <div>
+                                <label for="race" class="block text-sm font-medium text-gray-700 mb-1">种族</label>
+                                <select id="race" name="race" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                    <option value="">选择种族</option>
+                                    <option value="人类">人类</option>
+                                    <option value="精灵">精灵</option>
+                                    <option value="矮人">矮人</option>
+                                    <option value="半身人">半身人</option>
+                                    <option value="侏儒">侏儒</option>
+                                    <option value="龙裔">龙裔</option>
+                                    <option value="半精灵">半精灵</option>
+                                    <option value="半兽人">半兽人</option>
+                                    <option value="提夫林">提夫林</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="class" class="block text-sm font-medium text-gray-700 mb-1">职业</label>
+                                <select id="class" name="class" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                    <option value="">选择职业</option>
+                                    <option value="战士">战士</option>
+                                    <option value="法师">法师</option>
+                                    <option value="牧师">牧师</option>
+                                    <option value="盗贼">盗贼</option>
+                                    <option value="圣骑士">圣骑士</option>
+                                    <option value="游侠">游侠</option>
+                                    <option value="德鲁伊">德鲁伊</option>
+                                    <option value="武僧">武僧</option>
+                                    <option value="术士">术士</option>
+                                    <option value=" Bard">吟游诗人</option>
+                                    <option value="圣武士">圣武士</option>
+                                    <option value="法师">法师</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="level" class="block text-sm font-medium text-gray-700 mb-1">等级</label>
+                                <input type="number" id="level" name="level" min="1" max="20" value="1"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                            </div>
+                            <div>
+                                <label for="background" class="block text-sm font-medium text-gray-700 mb-1">背景</label>
+                                <input type="text" id="background" name="background"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                    placeholder="输入角色背景">
+                            </div>
+                            <div>
+                                <label for="alignment" class="block text-sm font-medium text-gray-700 mb-1">阵营</label>
+                                <select id="alignment" name="alignment"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                    <option value="">选择阵营</option>
+                                    <option value="守序善良">守序善良</option>
+                                    <option value="中立善良">中立善良</option>
+                                    <option value="混乱善良">混乱善良</option>
+                                    <option value="守序中立">守序中立</option>
+                                    <option value="绝对中立">绝对中立</option>
+                                    <option value="混乱中立">混乱中立</option>
+                                    <option value="守序邪恶">守序邪恶</option>
+                                    <option value="中立邪恶">中立邪恶</option>
+                                    <option value="混乱邪恶">混乱邪恶</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 属性值 -->
+                    <div>
+                        <h2 class="text-xl font-semibold mb-4">属性值</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="strength" class="block text-sm font-medium text-gray-700 mb-1">力量 (STR)</label>
+                                <div class="flex space-x-2">
+                                    <input type="number" id="strength" name="strength" min="3" max="20" value="10"
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                    <span id="strengthModifier" class="flex items-center px-2 py-2 bg-gray-100 rounded-lg text-sm">+0</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="dexterity" class="block text-sm font-medium text-gray-700 mb-1">敏捷 (DEX)</label>
+                                <div class="flex space-x-2">
+                                    <input type="number" id="dexterity" name="dexterity" min="3" max="20" value="10"
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                    <span id="dexterityModifier" class="flex items-center px-2 py-2 bg-gray-100 rounded-lg text-sm">+0</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="constitution" class="block text-sm font-medium text-gray-700 mb-1">体质 (CON)</label>
+                                <div class="flex space-x-2">
+                                    <input type="number" id="constitution" name="constitution" min="3" max="20" value="10"
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                    <span id="constitutionModifier" class="flex items-center px-2 py-2 bg-gray-100 rounded-lg text-sm">+0</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="intelligence" class="block text-sm font-medium text-gray-700 mb-1">智力 (INT)</label>
+                                <div class="flex space-x-2">
+                                    <input type="number" id="intelligence" name="intelligence" min="3" max="20" value="10"
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                    <span id="intelligenceModifier" class="flex items-center px-2 py-2 bg-gray-100 rounded-lg text-sm">+0</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="wisdom" class="block text-sm font-medium text-gray-700 mb-1">感知 (WIS)</label>
+                                <div class="flex space-x-2">
+                                    <input type="number" id="wisdom" name="wisdom" min="3" max="20" value="10"
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                    <span id="wisdomModifier" class="flex items-center px-2 py-2 bg-gray-100 rounded-lg text-sm">+0</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="charisma" class="block text-sm font-medium text-gray-700 mb-1">魅力 (CHA)</label>
+                                <div class="flex space-x-2">
+                                    <input type="number" id="charisma" name="charisma" min="3" max="20" value="10"
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                    <span id="charismaModifier" class="flex items-center px-2 py-2 bg-gray-100 rounded-lg text-sm">+0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 战斗信息 -->
+                    <div>
+                        <h2 class="text-xl font-semibold mb-4">战斗信息</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="hitPoints" class="block text-sm font-medium text-gray-700 mb-1">生命值</label>
+                                <input type="number" id="hitPoints" name="hitPoints" min="1" value="10"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                            </div>
+                            <div>
+                                <label for="hitDice" class="block text-sm font-medium text-gray-700 mb-1">生命骰</label>
+                                <input type="text" id="hitDice" name="hitDice" value="1d8"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                            </div>
+                            <div>
+                                <label for="armorClass" class="block text-sm font-medium text-gray-700 mb-1">护甲等级</label>
+                                <input type="number" id="armorClass" name="armorClass" min="1" value="10"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                            </div>
+                            <div>
+                                <label for="speed" class="block text-sm font-medium text-gray-700 mb-1">速度</label>
+                                <input type="number" id="speed" name="speed" min="1" value="30"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                            </div>
+                            <div>
+                                <label for="experience" class="block text-sm font-medium text-gray-700 mb-1">经验值</label>
+                                <input type="number" id="experience" name="experience" min="0" value="0"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 技能 -->
+                    <div>
+                        <h2 class="text-xl font-semibold mb-4">技能</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- 技能将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 特性和装备 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h2 class="text-xl font-semibold mb-4">特性与专长</h2>
+                            <textarea id="features" name="features" rows="4"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                placeholder="输入角色的特性和专长"></textarea>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold mb-4">装备</h2>
+                            <textarea id="equipment" name="equipment" rows="4"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                placeholder="输入角色的装备"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- 背景故事 -->
+                    <div>
+                        <h2 class="text-xl font-semibold mb-4">背景故事</h2>
+                        <textarea id="backgroundStory" name="backgroundStory" rows="6"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                            placeholder="输入角色的背景故事"></textarea>
+                    </div>
+                    
+                    <!-- 提交按钮 -->
+                    <div class="flex space-x-4">
+                        <button type="submit" class="flex-1 bg-primary text-white py-3 px-6 rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg">
+                            创建角色
+                        </button>
+                        <a href="dashboard.html" class="flex-1 bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors text-center">
+                            取消
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-gray-400">
+                <p>&copy; 2025 DND5E角色管理器. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/character.js"></script>
+</body>
+</html>

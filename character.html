@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    角色卡 - DND5E角色卡管理工具
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/v4-shims.min.css" rel="stylesheet">
+    <!-- 自定义CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF7D00',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-inter bg-gray-50 text-dark">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-md fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-dice-d20 text-primary text-2xl mr-2"></i>
+                    <span class="text-xl font-bold text-primary">DND5E角色管理器</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="dashboard.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        仪表盘
+                    </a>
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-2 text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            <i class="fas fa-user-circle text-xl"></i>
+                            <span id="usernameDisplay">用户名</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <!-- 用户菜单 -->
+                        <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                个人资料
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                设置
+                            </a>
+                            <hr class="my-1">
+                            <a href="#" id="logoutButton" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                退出登录
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <section class="pt-24 pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- 角色标题和操作 -->
+            <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-dark mb-2" id="characterName">角色名称</h1>
+                    <div class="flex items-center space-x-4 text-gray-600">
+                        <span id="characterRaceClass">种族 / 职业</span>
+                        <span>•</span>
+                        <span id="characterLevel">等级 1</span>
+                        <span>•</span>
+                        <span id="characterAlignment">阵营</span>
+                    </div>
+                </div>
+                <div class="mt-4 md:mt-0 flex space-x-3">
+                    <button id="editCharacterButton" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors shadow-md">
+                        <i class="fas fa-edit mr-2"></i>编辑角色
+                    </button>
+                    <button id="deleteCharacterButton" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-md">
+                        <i class="fas fa-trash mr-2"></i>删除角色
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 角色卡内容 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- 左侧：属性和技能 -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- 属性卡片 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-semibold mb-4">属性</h2>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">力量 (STR)</span>
+                                <div class="flex items-center space-x-2">
+                                    <span id="strengthValue">10</span>
+                                    <span id="strengthModifier" class="bg-gray-100 px-2 py-1 rounded text-sm">+0</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">敏捷 (DEX)</span>
+                                <div class="flex items-center space-x-2">
+                                    <span id="dexterityValue">10</span>
+                                    <span id="dexterityModifier" class="bg-gray-100 px-2 py-1 rounded text-sm">+0</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">体质 (CON)</span>
+                                <div class="flex items-center space-x-2">
+                                    <span id="constitutionValue">10</span>
+                                    <span id="constitutionModifier" class="bg-gray-100 px-2 py-1 rounded text-sm">+0</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">智力 (INT)</span>
+                                <div class="flex items-center space-x-2">
+                                    <span id="intelligenceValue">10</span>
+                                    <span id="intelligenceModifier" class="bg-gray-100 px-2 py-1 rounded text-sm">+0</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">感知 (WIS)</span>
+                                <div class="flex items-center space-x-2">
+                                    <span id="wisdomValue">10</span>
+                                    <span id="wisdomModifier" class="bg-gray-100 px-2 py-1 rounded text-sm">+0</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">魅力 (CHA)</span>
+                                <div class="flex items-center space-x-2">
+                                    <span id="charismaValue">10</span>
+                                    <span id="charismaModifier" class="bg-gray-100 px-2 py-1 rounded text-sm">+0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 战斗信息卡片 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-semibold mb-4">战斗信息</h2>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">生命值</span>
+                                <span id="hitPointsValue">10</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">生命骰</span>
+                                <span id="hitDiceValue">1d8</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">护甲等级</span>
+                                <span id="armorClassValue">10</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">速度</span>
+                                <span id="speedValue">30</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">经验值</span>
+                                <span id="experienceValue">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 技能卡片 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-semibold mb-4">技能</h2>
+                        <div id="skillsList" class="space-y-2">
+                            <!-- 技能将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧：背景和详细信息 -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- 背景故事卡片 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-semibold mb-4">背景故事</h2>
+                        <p id="backgroundStoryContent" class="text-gray-600">
+                            角色的背景故事将在这里显示...
+                        </p>
+                    </div>
+                    
+                    <!-- 特性卡片 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-semibold mb-4">特性与专长</h2>
+                        <div id="featuresContent" class="text-gray-600">
+                            角色的特性与专长将在这里显示...
+                        </div>
+                    </div>
+                    
+                    <!-- 装备卡片 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-semibold mb-4">装备</h2>
+                        <div id="equipmentContent" class="text-gray-600">
+                            角色的装备将在这里显示...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-gray-400">
+                <p>&copy; 2025 DND5E角色管理器. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/character.js"></script>
+</body>
+</html>

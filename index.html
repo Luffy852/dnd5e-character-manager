@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    DND5E角色卡管理工具
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/v4-shims.min.css" rel="stylesheet">
+    <!-- 自定义CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF7D00',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 text-dark">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-md fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-dice-d20 text-primary text-2xl mr-2"></i>
+                    <span class="text-xl font-bold text-primary">DND5E角色管理器</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        首页
+                    </a>
+                    <a href="login.html" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        登录
+                    </a>
+                    <a href="register.html" class="bg-primary text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">
+                        注册
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 英雄区域 -->
+    <section class="pt-24 pb-16 bg-gradient-to-br from-primary/5 to-blue-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-6xl font-bold text-dark mb-6 text-shadow">
+                    你的DND5E角色卡管理工具
+                </h1>
+                <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                    轻松创建、管理和分享你的DND5E角色，让你的冒险之旅更加精彩
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <a href="register.html" class="bg-primary text-white px-8 py-3 rounded-lg font-medium text-lg hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl">
+                        开始使用
+                    </a>
+                    <a href="#features" class="bg-white text-primary border-2 border-primary px-8 py-3 rounded-lg font-medium text-lg hover:bg-primary/5 transition-colors">
+                        了解更多
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 功能特性 -->
+    <section id="features" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-dark mb-4">强大的功能特性</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">
+                    为DND5E玩家量身打造的角色管理工具，满足你所有的角色需求
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 特性卡片1 -->
+                <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-user-circle text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">完整的角色管理</h3>
+                    <p class="text-gray-600">
+                        管理角色的所有信息，包括属性、技能、特性、装备和背景故事，一切尽在掌握
+                    </p>
+                </div>
+                
+                <!-- 特性卡片2 -->
+                <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-shield-alt text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">安全的数据存储</h3>
+                    <p class="text-gray-600">
+                        所有数据安全存储在Cloudflare D1数据库中，你的角色信息不会丢失
+                    </p>
+                </div>
+                
+                <!-- 特性卡片3 -->
+                <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-mobile-alt text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">响应式设计</h3>
+                    <p class="text-gray-600">
+                        在任何设备上都能完美显示，无论是电脑、平板还是手机，都能轻松管理你的角色
+                    </p>
+                </div>
+                
+                <!-- 特性卡片4 -->
+                <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">社群分享</h3>
+                    <p class="text-gray-600">
+                        与你的游戏伙伴分享你的角色卡，让团队合作更加顺畅
+                    </p>
+                </div>
+                
+                <!-- 特性卡片5 -->
+                <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-dice-d20 text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">DND5E规则支持</h3>
+                    <p class="text-gray-600">
+                        完全按照DND5E规则设计，自动计算属性修正值、技能检定等
+                    </p>
+                </div>
+                
+                <!-- 特性卡片6 -->
+                <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-save text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">自动保存</h3>
+                    <p class="text-gray-600">
+                        所有修改都会自动保存，不用担心辛苦编辑的内容丢失
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于我们 -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-dark mb-4">关于这个工具</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">
+                    为DND5E玩家打造的免费角色卡管理工具，让你的角色扮演更加精彩
+                </p>
+            </div>
+            
+            <div class="max-w-3xl mx-auto bg-white rounded-xl p-8 shadow-md">
+                <h3 class="text-2xl font-semibold mb-4">为什么创建这个工具？</h3>
+                <p class="text-gray-600 mb-6">
+                    作为一名DND玩家，我发现现有的角色卡管理工具要么功能不够完整，要么需要付费使用。因此，我决定创建一个免费、开源的DND5E角色卡管理工具，让所有玩家都能轻松管理自己的角色。
+                </p>
+                
+                <h3 class="text-2xl font-semibold mb-4">这个工具的特点</h3>
+                <ul class="text-gray-600 space-y-2 mb-6">
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        完全免费，没有任何隐藏费用
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        开源代码，任何人都可以贡献自己的力量
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        基于DND5E规则设计，符合官方标准
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        简洁易用的界面，即使是新手也能快速上手
+                    </li>
+                </ul>
+                
+                <div class="text-center">
+                    <a href="register.html" class="inline-block bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-lg">
+                        立即开始使用
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-dice-d20 text-primary text-2xl mr-2"></i>
+                        <span class="text-xl font-bold">DND5E角色管理器</span>
+                    </div>
+                    <p class="text-gray-400">
+                        为DND5E玩家打造的免费角色卡管理工具，让你的角色扮演更加精彩
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">快速链接</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="index.html" class="hover:text-white transition-colors">首页</a></li>
+                        <li><a href="login.html" class="hover:text-white transition-colors">登录</a></li>
+                        <li><a href="register.html" class="hover:text-white transition-colors">注册</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">联系我们</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-2"></i>
+                            <span>contact@finewinginnovation.cn</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-github mr-2"></i>
+                            <a href="https://github.com/Luffy852/dnd5e-character-manager" class="hover:text-white transition-colors">GitHub仓库</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 DND5E角色管理器. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/main.js"></script>
+</body>
+</html>
