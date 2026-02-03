@@ -1,59 +1,95 @@
-// db.js - 前端API调用封装
-const API_BASE_URL = "https://dnd5e-character-api.yourname.workers.dev"; // 替换为你的Worker URL
+// 替换为你的Worker实际地址
+const API_BASE_URL = "https://dnd5e-character-api.ylf-bob.workers.dev";
 
-// 用户相关
+// ========== 用户相关 ==========
 async function registerUser(username, email, password) {
-  const response = await fetch(`${API_BASE_URL}/api/users/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, email, password })
-  });
-  return response.json();
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/users/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password })
+    });
+    return await res.json();
+  } catch (err) {
+    console.error("注册失败:", err);
+    return { success: false, error: "网络错误" };
+  }
 }
 
 async function loginUser(email, password) {
-  const response = await fetch(`${API_BASE_URL}/api/users/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
-  });
-  return response.json();
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/users/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    return await res.json();
+  } catch (err) {
+    console.error("登录失败:", err);
+    return { success: false, error: "网络错误" };
+  }
 }
 
-// 角色相关
-async function createCharacter(characterData) {
-  const response = await fetch(`${API_BASE_URL}/api/characters`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(characterData)
-  });
-  return response.json();
+// ========== 角色相关 ==========
+async function createCharacter(data) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/characters`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    return result.characterId;
+  } catch (err) {
+    console.error("创建角色失败:", err);
+    throw new Error("创建角色失败");
+  }
 }
 
 async function getCharacterById(id) {
-  const response = await fetch(`${API_BASE_URL}/api/characters/${id}`);
-  return response.json();
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/characters/${id}`);
+    return await res.json();
+  } catch (err) {
+    console.error("获取角色失败:", err);
+    throw new Error("获取角色失败");
+  }
 }
 
 async function getUserCharacters(userId) {
-  const response = await fetch(`${API_BASE_URL}/api/characters/user?userId=${userId}`);
-  return response.json();
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/characters/user?userId=${userId}`);
+    return await res.json();
+  } catch (err) {
+    console.error("获取角色列表失败:", err);
+    throw new Error("获取角色列表失败");
+  }
 }
 
 async function deleteCharacter(id) {
-  const response = await fetch(`${API_BASE_URL}/api/characters/${id}`, {
-    method: "DELETE"
-  });
-  return response.json();
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/characters/${id}`, {
+      method: "DELETE"
+    });
+    return await res.json();
+  } catch (err) {
+    console.error("删除角色失败:", err);
+    return { success: false, error: "网络错误" };
+  }
 }
 
-// 技能相关
+// ========== 技能相关 ==========
 async function getSkills() {
-  const response = await fetch(`${API_BASE_URL}/api/skills`);
-  return response.json();
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/skills`);
+    return await res.json();
+  } catch (err) {
+    console.error("获取技能失败:", err);
+    throw new Error("获取技能失败");
+  }
 }
 
-// 导出供其他文件使用
+// 导出供全局使用
 const db = {
   registerUser,
   loginUser,

@@ -1,480 +1,323 @@
-// 全局变量：当前登录用户（从localStorage获取）
+// 全局变量
 const currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
-// 角色管理功能
+// 页面加载完成初始化
 document.addEventListener('DOMContentLoaded', function() {
-    // 初始化新角色表单
     initNewCharacterForm();
-    
-    // 初始化角色页面
     initCharacterPage();
-    
-    // 初始化角色仪表盘
     initCharacterDashboard();
 });
 
-// 初始化新角色表单
+// ========== 新角色表单 ==========
 function initNewCharacterForm() {
-    const newCharacterForm = document.getElementById('newCharacterForm');
-    if (newCharacterForm) {
-        // 初始化技能列表
-        initSkillsList();
-        
-        // 初始化属性修正值计算
-        initAbilityScoreCalculation();
-        
-        // 表单提交处理
-        newCharacterForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            handleCreateCharacter();
-        });
-    }
+    const form = document.getElementById('newCharacterForm');
+    if (!form) return;
+
+    // 初始化技能列表
+    initSkillsList();
+    
+    // 初始化属性计算
+    initAbilityScoreCalculation();
+    
+    // 表单提交
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleCreateCharacter(form);
+    });
 }
 
-// 初始化技能列表
 async function initSkillsList() {
     try {
+        const form = document.getElementById('newCharacterForm');
+        const container = form?.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3.gap-4');
+        if (!container) return;
+
         const skills = await db.getSkills();
-        // 修复：先判断newCharacterForm是否存在，避免报错
-        const newCharacterForm = document.getElementById('newCharacterForm');
-        if (!newCharacterForm) return;
-        
-        const skillsContainer = newCharacterForm.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3.gap-4');
-        
-        if (skills && skills.length > 0 && skillsContainer) {
-            skills.forEach(skill => {
-                const skillDiv = document.createElement('div');
-                skillDiv.className = 'flex items-center space-x-2';
-                
-                const skillLabel = document.createElement('label');
-                skillLabel.className = 'flex-1 text-sm font-medium text-gray-700';
-                skillLabel.textContent = skill.name;
-                
-                const skillCheckbox = document.createElement('input');
-                skillCheckbox.type = 'checkbox';
-                skillCheckbox.id = `skill-${skill.id}`;
-                skillCheckbox.name = `skills[${skill.id}]`;
-                skillCheckbox.className = 'h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded';
-                
-                const skillModifier = document.createElement('span');
-                skillModifier.className = 'text-sm text-gray-500';
-                skillModifier.textContent = `(${skill.ability_score.substring(0, 3).toUpperCase()})`;
-                
-                skillLabel.prepend(skillCheckbox); // 把checkbox放在文字前面
-                skillLabel.appendChild(skillModifier);
-                skillDiv.appendChild(skillLabel);
-                
-                skillsContainer.appendChild(skillDiv);
-            });
-        }
-    } catch (error) {
-        console.error('加载技能列表错误:', error);
+        if (!skills || skills.length === 0) return;
+
+        skills.forEach(skill => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-2';
+
+            const label = document.createElement('label');
+            label.className = 'flex-1 text-sm font-medium text-gray-700';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `skill-${skill.id}`;
+            checkbox.name = `skills[${skill.id}]`;
+            checkbox.className = 'h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded';
+
+            const modifier = document.createElement('span');
+            modifier.className = 'text-sm text-gray-500';
+            modifier.textContent = `(${skill.ability_score.substring(0, 3).toUpperCase()})`;
+
+            label.prepend(checkbox);
+            label.appendChild(modifier);
+            div.appendChild(label);
+            container.appendChild(div);
+        });
+    } catch (err) {
+        console.error("加载技能失败:", err);
         showNotification('加载技能列表失败', 'error');
     }
 }
 
-// 初始化属性修正值计算
 function initAbilityScoreCalculation() {
-    const abilityScores = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
+    const scores = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
     
-    abilityScores.forEach(score => {
+    scores.forEach(score => {
         const input = document.getElementById(score);
-        const modifierElement = document.getElementById(`${score}Modifier`);
-        
-        if (input && modifierElement) {
-            // 初始计算
-            updateModifier(input, modifierElement);
-            
-            // 监听输入变化
-            input.addEventListener('input', function() {
-                updateModifier(input, modifierElement);
-            });
+        const modifier = document.getElementById(`${score}Modifier`);
+        if (input && modifier) {
+            updateModifier(input, modifier);
+            input.addEventListener('input', () => updateModifier(input, modifier));
         }
     });
 }
 
-// 更新属性修正值显示
-function updateModifier(input, modifierElement) {
+function updateModifier(input, modifierEl) {
     const value = parseInt(input.value) || 10;
-    const modifier = calculateModifier(value);
-    modifierElement.textContent = formatModifier(modifier);
+    const mod = Math.floor((value - 10) / 2);
+    modifierEl.textContent = mod >= 0 ? `+${mod}` : mod;
 }
 
-// 处理创建角色
-async function handleCreateCharacter() {
+async function handleCreateCharacter(form) {
     if (!currentUser) {
         showNotification('请先登录', 'error');
         return;
     }
-    
-    // 获取表单数据
-    const newCharacterForm = document.getElementById('newCharacterForm');
-    if (!newCharacterForm) return;
-    
-    const formData = new FormData(newCharacterForm);
-    const characterData = {
-        userId: currentUser.id,
-        name: formData.get('name'),
-        race: formData.get('race'),
-        class: formData.get('class'),
-        level: parseInt(formData.get('level')) || 1,
-        background: formData.get('background'),
-        alignment: formData.get('alignment'),
-        experience: parseInt(formData.get('experience')) || 0,
-        strength: parseInt(formData.get('strength')) || 10,
-        dexterity: parseInt(formData.get('dexterity')) || 10,
-        constitution: parseInt(formData.get('constitution')) || 10,
-        intelligence: parseInt(formData.get('intelligence')) || 10,
-        wisdom: parseInt(formData.get('wisdom')) || 10,
-        charisma: parseInt(formData.get('charisma')) || 10,
-        hitPoints: parseInt(formData.get('hitPoints')) || 10,
-        hitDice: formData.get('hitDice') || '1d8',
-        armorClass: parseInt(formData.get('armorClass')) || 10,
-        speed: parseInt(formData.get('speed')) || 30,
-        skills: getSelectedSkills(),
-        features: formData.get('features'),
-        equipment: formData.get('equipment'),
-        backgroundStory: formData.get('backgroundStory')
-    };
-    
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loading-spinner-sm mr-2"></span> 创建中...';
+
     try {
-        // 显示加载状态
-        const submitButton = newCharacterForm.querySelector('button[type="submit"]');
-        if (!submitButton) return;
-        
-        const originalText = submitButton.textContent;
-        showLoading(submitButton);
-        
-        // 创建角色
-        const result = await db.createCharacter(characterData);
-        if (result.success && result.characterId) {
-            showNotification('角色创建成功！', 'success');
-            setTimeout(function() {
-                window.location.href = `character.html?id=${result.characterId}`;
-            }, 1000);
-        } else {
-            throw new Error(result.error || '创建角色失败');
-        }
-    } catch (error) {
+        const formData = new FormData(form);
+        const data = {
+            userId: currentUser.id,
+            name: formData.get('name'),
+            race: formData.get('race'),
+            class: formData.get('class'),
+            level: parseInt(formData.get('level')) || 1,
+            background: formData.get('background'),
+            alignment: formData.get('alignment'),
+            experience: parseInt(formData.get('experience')) || 0,
+            strength: parseInt(formData.get('strength')) || 10,
+            dexterity: parseInt(formData.get('dexterity')) || 10,
+            constitution: parseInt(formData.get('constitution')) || 10,
+            intelligence: parseInt(formData.get('intelligence')) || 10,
+            wisdom: parseInt(formData.get('wisdom')) || 10,
+            charisma: parseInt(formData.get('charisma')) || 10,
+            hitPoints: parseInt(formData.get('hitPoints')) || 10,
+            hitDice: formData.get('hitDice') || '1d8',
+            armorClass: parseInt(formData.get('armorClass')) || 10,
+            speed: parseInt(formData.get('speed')) || 30,
+            skills: getSelectedSkills(form),
+            features: formData.get('features'),
+            equipment: formData.get('equipment'),
+            backgroundStory: formData.get('backgroundStory')
+        };
+
+        const characterId = await db.createCharacter(data);
+        showNotification('角色创建成功！', 'success');
+        setTimeout(() => {
+            window.location.href = `character.html?id=${characterId}`;
+        }, 1000);
+    } catch (err) {
         showNotification('创建角色失败', 'error');
-        console.error('创建角色错误:', error);
+        console.error(err);
     } finally {
-        // 恢复按钮状态
-        const submitButton = newCharacterForm.querySelector('button[type="submit"]');
-        if (submitButton) {
-            submitButton.disabled = false;
-            submitButton.textContent = submitButton.dataset.originalText || '创建角色';
-        }
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     }
 }
 
-// 获取选中的技能
-function getSelectedSkills() {
-    const newCharacterForm = document.getElementById('newCharacterForm');
-    if (!newCharacterForm) return [];
-    
-    const checkboxes = newCharacterForm.querySelectorAll('input[type="checkbox"][name^="skills["]');
-    const selectedSkills = [];
-    
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            const match = checkbox.name.match(/\[(\d+)\]/);
-            if (match && match[1]) {
-                const skillId = parseInt(match[1]);
-                selectedSkills.push(skillId);
-            }
-        }
+function getSelectedSkills(form) {
+    const checkboxes = form.querySelectorAll('input[type="checkbox"][name^="skills["]:checked');
+    return Array.from(checkboxes).map(checkbox => {
+        return parseInt(checkbox.name.match(/\[(\d+)\]/)[1]);
     });
-    
-    return selectedSkills;
 }
 
-// 初始化角色页面
+// ========== 角色详情页 ==========
 function initCharacterPage() {
-    if (window.location.pathname.endsWith('character.html')) {
-        // 获取角色ID
-        const urlParams = new URLSearchParams(window.location.search);
-        const characterId = urlParams.get('id');
-        
-        if (characterId) {
-            loadCharacter(characterId);
-        } else {
-            showNotification('无效的角色ID', 'error');
-            setTimeout(function() {
-                window.location.href = 'dashboard.html';
-            }, 1000);
-        }
-        
-        // 初始化编辑和删除按钮
-        initCharacterActions();
+    if (!window.location.pathname.endsWith('character.html')) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    
+    if (!id || !currentUser) {
+        showNotification('无效的角色ID', 'error');
+        setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        return;
     }
+
+    loadCharacter(id);
+    initCharacterActions();
 }
 
-// 加载角色信息
-async function loadCharacter(characterId) {
+async function loadCharacter(id) {
+    const mainContent = document.querySelector('section.pt-24.pb-16');
+    const originalContent = mainContent?.innerHTML;
+    
+    if (mainContent) {
+        mainContent.innerHTML = '<div class="text-center py-12"><div class="loading-spinner mx-auto"></div><p class="mt-4 text-gray-600">正在加载...</p></div>';
+    }
+
     try {
-        // 显示加载状态
-        const mainContent = document.querySelector('section.pt-24.pb-16');
-        if (!mainContent) return;
+        const character = await db.getCharacterById(id);
         
-        const originalContent = mainContent.innerHTML;
-        mainContent.innerHTML = '<div class="text-center py-12"><div class="loading-spinner mx-auto"></div><p class="mt-4 text-gray-600">正在加载角色信息...</p></div>';
-        
-        const result = await db.getCharacterById(characterId);
-        if (!result) {
-            throw new Error('角色不存在');
+        if (!character || character.user_id !== currentUser.id) {
+            throw new Error("角色不存在或无权限");
         }
-        
-        const character = result;
-        
-        // 检查角色是否属于当前用户
-        if (character.user_id !== currentUser.id) {
-            showNotification('你没有权限查看这个角色', 'error');
-            setTimeout(function() {
-                window.location.href = 'dashboard.html';
-            }, 1000);
-            mainContent.innerHTML = originalContent;
-            return;
-        }
-        
-        // 更新角色信息显示
+
         updateCharacterDisplay(character);
-    } catch (error) {
-        showNotification('加载角色信息失败', 'error');
-        console.error('加载角色错误:', error);
-        
-        const mainContent = document.querySelector('section.pt-24.pb-16');
+    } catch (err) {
+        showNotification('加载角色失败', 'error');
+        console.error(err);
         if (mainContent) {
-            mainContent.innerHTML = '<div class="text-center py-12"><p class="text-red-600">加载角色失败，请返回重试</p><a href="dashboard.html" class="mt-4 inline-block bg-primary text-white px-4 py-2 rounded">返回仪表盘</a></div>';
+            mainContent.innerHTML = '<div class="text-center py-12"><p class="text-red-600">加载失败</p><a href="dashboard.html" class="mt-4 bg-primary text-white px-4 py-2 rounded">返回</a></div>';
         }
-        
-        setTimeout(function() {
-            window.location.href = 'dashboard.html';
-        }, 3000);
     }
 }
 
-// 更新角色信息显示
 function updateCharacterDisplay(character) {
     // 基本信息
-    if (document.getElementById('characterName')) {
-        document.getElementById('characterName').textContent = character.name;
-    }
-    if (document.getElementById('characterRaceClass')) {
-        document.getElementById('characterRaceClass').textContent = `${character.race} / ${character.class}`;
-    }
-    if (document.getElementById('characterLevel')) {
-        document.getElementById('characterLevel').textContent = `等级 ${character.level}`;
-    }
-    if (document.getElementById('characterAlignment')) {
-        document.getElementById('characterAlignment').textContent = character.alignment || '无阵营';
-    }
-    
-    // 属性值
-    updateAbilityDisplay('strength', character.strength);
-    updateAbilityDisplay('dexterity', character.dexterity);
-    updateAbilityDisplay('constitution', character.constitution);
-    updateAbilityDisplay('intelligence', character.intelligence);
-    updateAbilityDisplay('wisdom', character.wisdom);
-    updateAbilityDisplay('charisma', character.charisma);
-    
+    setText('characterName', character.name);
+    setText('characterRaceClass', `${character.race} / ${character.class}`);
+    setText('characterLevel', `等级 ${character.level}`);
+    setText('characterAlignment', character.alignment || '无阵营');
+
+    // 属性
+    updateAbility('strength', character.strength);
+    updateAbility('dexterity', character.dexterity);
+    updateAbility('constitution', character.constitution);
+    updateAbility('intelligence', character.intelligence);
+    updateAbility('wisdom', character.wisdom);
+    updateAbility('charisma', character.charisma);
+
     // 战斗信息
-    if (document.getElementById('hitPointsValue')) {
-        document.getElementById('hitPointsValue').textContent = character.hit_points;
-    }
-    if (document.getElementById('hitDiceValue')) {
-        document.getElementById('hitDiceValue').textContent = character.hit_dice;
-    }
-    if (document.getElementById('armorClassValue')) {
-        document.getElementById('armorClassValue').textContent = character.armor_class;
-    }
-    if (document.getElementById('speedValue')) {
-        document.getElementById('speedValue').textContent = character.speed;
-    }
-    if (document.getElementById('experienceValue')) {
-        document.getElementById('experienceValue').textContent = character.experience;
-    }
-    
-    // 背景故事和其他信息
-    if (document.getElementById('backgroundStoryContent')) {
-        document.getElementById('backgroundStoryContent').textContent = character.background_story || '暂无背景故事';
-    }
-    if (document.getElementById('featuresContent')) {
-        document.getElementById('featuresContent').textContent = character.features || '暂无特性与专长';
-    }
-    if (document.getElementById('equipmentContent')) {
-        document.getElementById('equipmentContent').textContent = character.equipment || '暂无装备';
-    }
-    
+    setText('hitPointsValue', character.hit_points);
+    setText('hitDiceValue', character.hit_dice);
+    setText('armorClassValue', character.armor_class);
+    setText('speedValue', character.speed);
+    setText('experienceValue', character.experience);
+
+    // 其他信息
+    setText('backgroundStoryContent', character.background_story || '暂无');
+    setText('featuresContent', character.features || '暂无');
+    setText('equipmentContent', character.equipment || '暂无');
+
     // 技能列表
     loadCharacterSkills(character.skills);
 }
 
-// 辅助函数：更新属性显示
-function updateAbilityDisplay(ability, value) {
-    const valueElement = document.getElementById(`${ability}Value`);
-    const modifierElement = document.getElementById(`${ability}Modifier`);
-    
-    if (valueElement) {
-        valueElement.textContent = value;
-    }
-    if (modifierElement) {
-        modifierElement.textContent = formatModifier(calculateModifier(value));
-    }
+function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
 }
 
-// 加载角色技能
+function updateAbility(ability, value) {
+    setText(`${ability}Value`, value);
+    setText(`${ability}Modifier`, formatModifier(value));
+}
+
+function formatModifier(score) {
+    const mod = Math.floor((parseInt(score) - 10) / 2);
+    return mod >= 0 ? `+${mod}` : mod;
+}
+
 async function loadCharacterSkills(skillsJson) {
     try {
-        const skillIds = typeof skillsJson === 'string' ? JSON.parse(skillsJson) : skillsJson || [];
+        const list = document.getElementById('skillsList');
+        if (!list) return;
+
+        const skillIds = JSON.parse(skillsJson) || [];
         const skills = await db.getSkills();
-        const skillsList = document.getElementById('skillsList');
         
-        if (!skillsList) return;
-        skillsList.innerHTML = '';
-        
-        if (skills && skills.length > 0) {
-            skills.forEach(skill => {
-                if (skillIds.includes(skill.id)) {
-                    const skillDiv = document.createElement('div');
-                    skillDiv.className = 'flex justify-between items-center py-1';
-                    
-                    const skillName = document.createElement('span');
-                    skillName.textContent = skill.name;
-                    
-                    // 修复：从页面获取属性值，而非输入框
-                    const abilityValue = document.getElementById(`${skill.ability_score}Value`)?.textContent || 10;
-                    const modifier = calculateModifier(parseInt(abilityValue));
-                    
-                    const skillModifier = document.createElement('span');
-                    skillModifier.className = 'bg-gray-100 px-2 py-1 rounded text-sm';
-                    skillModifier.textContent = formatModifier(modifier);
-                    
-                    skillDiv.appendChild(skillName);
-                    skillDiv.appendChild(skillModifier);
-                    skillsList.appendChild(skillDiv);
-                }
-            });
-        }
-    } catch (error) {
-        console.error('加载技能列表错误:', error);
+        list.innerHTML = '';
+        skills.forEach(skill => {
+            if (skillIds.includes(skill.id)) {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center py-1';
+                
+                const name = document.createElement('span');
+                name.textContent = skill.name;
+                
+                const mod = document.createElement('span');
+                mod.className = 'bg-gray-100 px-2 py-1 rounded text-sm';
+                mod.textContent = formatModifier(document.getElementById(`${skill.ability_score}Value`)?.textContent || 10);
+                
+                div.appendChild(name);
+                div.appendChild(mod);
+                list.appendChild(div);
+            }
+        });
+    } catch (err) {
+        console.error("加载技能失败:", err);
     }
 }
 
-// 初始化角色操作按钮
 function initCharacterActions() {
-    const editButton = document.getElementById('editCharacterButton');
-    const deleteButton = document.getElementById('deleteCharacterButton');
-    
-    if (editButton) {
-        editButton.addEventListener('click', function() {
-            // 这里可以添加编辑角色的功能
-            showNotification('编辑功能将在后续版本中实现', 'info');
-        });
+    const editBtn = document.getElementById('editCharacterButton');
+    const deleteBtn = document.getElementById('deleteCharacterButton');
+
+    if (editBtn) {
+        editBtn.addEventListener('click', () => showNotification('编辑功能待实现', 'info'));
     }
-    
-    if (deleteButton) {
-        deleteButton.addEventListener('click', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const characterId = urlParams.get('id');
-            
-            if (characterId) {
-                confirmDeleteCharacter(characterId);
-            }
+
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+            const id = new URLSearchParams(window.location.search).get('id');
+            if (id) confirmDeleteCharacter(id);
         });
     }
 }
 
-// 确认删除角色（补全所有缺失的闭合代码）
-function confirmDeleteCharacter(characterId) {
-    createModal(
-        '确认删除角色',
-        '你确定要删除这个角色吗？这个操作无法撤销。',
-        [
-            {
-                text: '取消',
-                class: 'bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors',
-                action: function() {
-                    this.closest('.modal').classList.remove('active');
-                }
-            },
-            {
-                text: '删除',
-                class: 'bg-red-600 text-white hover:bg-red-700 transition-colors',
-                action: async function() {
-                    try {
-                        const result = await db.deleteCharacter(characterId);
-                        if (result.success) {
-                            showNotification('角色删除成功', 'success');
-                            setTimeout(function() {
-                                window.location.href = 'dashboard.html';
-                            }, 1000);
-                        } else {
-                            throw new Error(result.error || '删除失败');
-                        }
-                    } catch (error) {
-                        showNotification('删除角色失败', 'error');
-                        console.error('删除角色错误:', error);
-                    }
-                    this.closest('.modal').classList.remove('active');
-                }
-            }
-        ]
-    );
-}
-
-// 初始化角色仪表盘
+// ========== 角色仪表盘 ==========
 function initCharacterDashboard() {
-    if (window.location.pathname.endsWith('dashboard.html') && currentUser) {
-        loadUserCharacters();
-    }
+    if (!window.location.pathname.endsWith('dashboard.html') || !currentUser) return;
+    loadUserCharacters();
 }
 
-// 加载用户角色列表
 async function loadUserCharacters() {
+    const container = document.getElementById('charactersContainer');
+    if (!container) return;
+
+    container.innerHTML = '<div class="text-center py-12"><div class="loading-spinner mx-auto"></div><p class="mt-4">加载角色中...</p></div>';
+
     try {
-        const charactersContainer = document.getElementById('charactersContainer');
-        if (!charactersContainer) return;
-        
-        // 显示加载状态
-        charactersContainer.innerHTML = '<div class="text-center py-12"><div class="loading-spinner mx-auto"></div><p class="mt-4 text-gray-600">正在加载你的角色...</p></div>';
-        
         const characters = await db.getUserCharacters(currentUser.id);
         
-        if (characters && characters.length > 0) {
-            charactersContainer.innerHTML = '';
-            characters.forEach(character => {
-                const characterCard = createCharacterCard(character);
-                charactersContainer.appendChild(characterCard);
-            });
-        } else {
-            charactersContainer.innerHTML = `
+        if (!characters || characters.length === 0) {
+            container.innerHTML = `
                 <div class="text-center py-12">
-                    <p class="text-gray-500">你还没有创建任何角色</p>
-                    <a href="new-character.html" class="mt-4 inline-block bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 transition-colors">
-                        创建第一个角色
-                    </a>
+                    <p class="text-gray-500">暂无角色</p>
+                    <a href="new-character.html" class="mt-4 bg-primary text-white px-4 py-2 rounded">创建第一个角色</a>
                 </div>
             `;
+            return;
         }
-    } catch (error) {
-        console.error('加载角色列表错误:', error);
-        const charactersContainer = document.getElementById('charactersContainer');
-        if (charactersContainer) {
-            charactersContainer.innerHTML = `
-                <div class="text-center py-12">
-                    <p class="text-red-600">加载角色失败，请重试</p>
-                    <button onclick="loadUserCharacters()" class="mt-4 inline-block bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 transition-colors">
-                        重新加载
-                    </button>
-                </div>
-            `;
-        }
+
+        container.innerHTML = '';
+        characters.forEach(char => {
+            const card = createCharacterCard(char);
+            container.appendChild(card);
+        });
+    } catch (err) {
+        console.error("加载角色列表失败:", err);
+        container.innerHTML = `
+            <div class="text-center py-12">
+                <p class="text-red-600">加载失败</p>
+                <button onclick="loadUserCharacters()" class="mt-4 bg-primary text-white px-4 py-2 rounded">重试</button>
+            </div>
+        `;
         showNotification('加载角色列表失败', 'error');
     }
 }
 
-// 创建角色卡片
 function createCharacterCard(character) {
     const card = document.createElement('div');
     card.className = 'bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow';
@@ -483,139 +326,82 @@ function createCharacterCard(character) {
         <h3 class="text-xl font-bold mb-2">${character.name}</h3>
         <p class="text-gray-600 mb-4">${character.race} / ${character.class} (等级 ${character.level})</p>
         <div class="flex space-x-4">
-            <a href="character.html?id=${character.id}" class="text-primary hover:underline">查看详情</a>
-            <button class="text-red-600 hover:text-red-800 delete-character-btn" data-id="${character.id}">删除</button>
+            <a href="character.html?id=${character.id}" class="text-primary hover:underline">查看</a>
+            <button class="text-red-600 hover:text-red-800 delete-btn" data-id="${character.id}">删除</button>
         </div>
     `;
-    
-    // 添加删除按钮事件
-    const deleteBtn = card.querySelector('.delete-character-btn');
-    deleteBtn.addEventListener('click', () => {
+
+    card.querySelector('.delete-btn').addEventListener('click', () => {
         confirmDeleteCharacter(character.id);
     });
-    
+
     return card;
 }
 
-// 工具函数：计算属性修正值
-function calculateModifier(score) {
-    return Math.floor((score - 10) / 2);
-}
-
-// 工具函数：格式化修正值显示
-function formatModifier(modifier) {
-    return modifier >= 0 ? `+${modifier}` : `${modifier}`;
-}
-
-// 工具函数：显示加载状态
-function showLoading(button) {
-    button.dataset.originalText = button.textContent;
-    button.disabled = true;
-    button.innerHTML = '<span class="loading-spinner-sm mr-2"></span> 处理中...';
-}
-
-// 工具函数：显示通知
-function showNotification(message, type = 'info') {
-    // 移除已存在的通知
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-    
-    const notification = document.createElement('div');
-    notification.className = `notification fixed top-4 right-4 px-6 py-3 rounded shadow-lg z-50 transition-all duration-300 transform translate-x-full`;
-    
-    // 设置通知样式
-    if (type === 'success') {
-        notification.classList.add('bg-green-500', 'text-white');
-    } else if (type === 'error') {
-        notification.classList.add('bg-red-500', 'text-white');
-    } else if (type === 'info') {
-        notification.classList.add('bg-blue-500', 'text-white');
-    }
-    
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    // 显示通知
-    setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-    }, 100);
-    
-    // 3秒后隐藏通知
-    setTimeout(() => {
-        notification.classList.add('translate-x-full');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
-}
-
-// 工具函数：创建模态框
-function createModal(title, content, buttons = []) {
-    // 移除已存在的模态框
-    const existingModal = document.querySelector('.modal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-    
-    // 创建模态框容器
-    const modalOverlay = document.createElement('div');
-    modalOverlay.className = 'modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300';
-    
+// ========== 工具函数 ==========
+function confirmDeleteCharacter(id) {
+    // 创建模态框
     const modal = document.createElement('div');
-    modal.className = 'bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform scale-95 transition-transform duration-300';
+    modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
     
-    // 模态框头部
-    const modalHeader = document.createElement('div');
-    modalHeader.className = 'px-6 py-4 border-b border-gray-200';
-    modalHeader.innerHTML = `<h3 class="text-lg font-bold">${title}</h3>`;
+    const modalContent = document.createElement('div');
+    modalContent.className = 'bg-white rounded-lg p-6 max-w-md w-full mx-4';
     
-    // 模态框内容
-    const modalBody = document.createElement('div');
-    modalBody.className = 'px-6 py-4';
-    modalBody.textContent = content;
-    
-    // 模态框底部（按钮）
-    const modalFooter = document.createElement('div');
-    modalFooter.className = 'px-6 py-4 border-t border-gray-200 flex justify-end space-x-3';
-    
-    // 添加按钮
-    buttons.forEach(btnConfig => {
-        const button = document.createElement('button');
-        button.className = `px-4 py-2 rounded ${btnConfig.class}`;
-        button.textContent = btnConfig.text;
-        
-        if (btnConfig.action) {
-            button.addEventListener('click', btnConfig.action);
-        }
-        
-        modalFooter.appendChild(button);
+    modalContent.innerHTML = `
+        <h3 class="text-lg font-bold mb-4">确认删除</h3>
+        <p class="mb-6">删除后无法恢复，确定吗？</p>
+        <div class="flex justify-end space-x-3">
+            <button class="cancel-btn px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">取消</button>
+            <button class="delete-btn px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">删除</button>
+        </div>
+    `;
+
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    // 取消按钮
+    modalContent.querySelector('.cancel-btn').addEventListener('click', () => {
+        document.body.removeChild(modal);
     });
+
+    // 删除按钮
+    modalContent.querySelector('.delete-btn').addEventListener('click', async () => {
+        try {
+            const result = await db.deleteCharacter(id);
+            if (result.success) {
+                showNotification('删除成功', 'success');
+                setTimeout(() => window.location.href = 'dashboard.html', 1000);
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (err) {
+            showNotification('删除失败', 'error');
+            console.error(err);
+        }
+        document.body.removeChild(modal);
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // 移除旧通知
+    const oldNotify = document.querySelector('.notification');
+    if (oldNotify) oldNotify.remove();
+
+    // 创建新通知
+    const notify = document.createElement('div');
+    notify.className = `fixed top-4 right-4 px-6 py-3 rounded shadow-lg z-50 transition-all duration-300`;
     
-    // 组装模态框
-    modal.appendChild(modalHeader);
-    modal.appendChild(modalBody);
-    modal.appendChild(modalFooter);
-    modalOverlay.appendChild(modal);
-    document.body.appendChild(modalOverlay);
-    
-    // 显示模态框
+    // 设置样式
+    if (type === 'success') notify.classList.add('bg-green-500', 'text-white');
+    if (type === 'error') notify.classList.add('bg-red-500', 'text-white');
+    if (type === 'info') notify.classList.add('bg-blue-500', 'text-white');
+
+    notify.textContent = message;
+    document.body.appendChild(notify);
+
+    // 自动消失
     setTimeout(() => {
-        modalOverlay.classList.add('active', 'opacity-100');
-        modal.classList.add('scale-100');
-    }, 10);
-    
-    // 点击遮罩关闭模态框
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) {
-            modalOverlay.classList.remove('active', 'opacity-100');
-            modal.classList.remove('scale-100');
-            setTimeout(() => {
-                modalOverlay.remove();
-            }, 300);
-        }
-    });
-    
-    return modalOverlay;
+        notify.classList.add('opacity-0');
+        setTimeout(() => notify.remove(), 300);
+    }, 3000);
 }
